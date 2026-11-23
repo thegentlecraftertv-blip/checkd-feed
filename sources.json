@@ -108,21 +108,21 @@
   ],
   "youtube": [
     {
-      "id": "yt-zib",
-      "handle": "@ZIB",
-      "name": "ZIB",
-      "category": "auto",
-      "fallback": "oesterreich",
-      "weight": 30,
-      "lang": "de"
-    },
-    {
       "id": "yt-orf",
       "handle": "@ORF",
       "name": "ORF",
       "category": "auto",
       "fallback": "oesterreich",
       "weight": 28,
+      "lang": "de"
+    },
+    {
+      "id": "yt-orfsport",
+      "handle": "@orfsport",
+      "name": "ORF Sport",
+      "category": "sport",
+      "fallback": "sport",
+      "weight": 22,
       "lang": "de"
     },
     {
@@ -136,7 +136,7 @@
     },
     {
       "id": "yt-puls24",
-      "handle": "@PULS24",
+      "handle": "@PULS24news",
       "name": "PULS 24",
       "category": "auto",
       "fallback": "oesterreich",
