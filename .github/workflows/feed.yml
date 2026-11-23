@@ -8,7 +8,7 @@ on:
   workflow_dispatch: {}        # "Run workflow"-Knopf auf GitHub zum sofort Starten
   push:
     branches: [main]
-    paths: ["sources.json", "tiktok.json", "aggregator/**", ".github/workflows/feed.yml"]
+    paths: ["sources.json", "aggregator/**", ".github/workflows/feed.yml"]
 
 permissions:
   contents: read
