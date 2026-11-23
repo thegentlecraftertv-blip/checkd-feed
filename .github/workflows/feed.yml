@@ -30,9 +30,9 @@ jobs:
           python-version: "3.12"
       - name: Feed bauen
         run: python aggregator/build_feed.py
-        # Später (Phase 4/7): API-Keys kommen aus GitHub Secrets, nie aus dem Code
-        # env:
-        #   YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        # API-Keys kommen aus GitHub Secrets – nie aus dem Code und nie in die App
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public

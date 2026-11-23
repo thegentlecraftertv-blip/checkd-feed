@@ -15,9 +15,12 @@ import concurrent.futures as cf
 import hashlib
 import html
 import json
+import os
 import re
 import sys
 import unicodedata
+import urllib.error
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
@@ -293,6 +296,109 @@ def importance(g: dict, now: datetime) -> int:
     return max(0, min(100, int(score)))
 
 
+# ---------------------------------------------------------------- YouTube Shorts (Phase 4)
+# Nur Metadaten (Titel, Kanal, Video-ID, Vorschaubild). Abgespielt wird in der App
+# ausschließlich über den offiziellen YouTube-Embed-Player – nichts wird heruntergeladen.
+# Der API-Key kommt aus dem GitHub-Secret YOUTUBE_API_KEY und steht nie im Code oder in der App.
+
+YT_API = "https://www.googleapis.com/youtube/v3/"
+
+
+def yt_get(endpoint: str, key: str, **params) -> dict | None:
+    q = urllib.parse.urlencode({**params, "key": key})
+    try:
+        req = urllib.request.Request(YT_API + endpoint + "?" + q, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:   # nie die URL ausgeben (enthält den Key)
+        print(f"  ! YouTube {endpoint}: HTTP {e.code}", file=sys.stderr)
+    except Exception as e:
+        print(f"  ! YouTube {endpoint}: {type(e).__name__}", file=sys.stderr)
+    return None
+
+
+def iso_duration(s: str) -> int:
+    """'PT1M5S' -> 65 Sekunden"""
+    m = re.fullmatch(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", s or "")
+    if not m:
+        return 0
+    d, h, mi, se = (int(x or 0) for x in m.groups())
+    return d * 86400 + h * 3600 + mi * 60 + se
+
+
+def youtube_channel(ch: dict, key: str, now: datetime, max_age_h: int, max_sec: int) -> list[dict]:
+    info = yt_get("channels", key, part="snippet,contentDetails", forHandle=ch["handle"])
+    if not info or not info.get("items"):
+        print(f"  ! YouTube-Kanal nicht gefunden: {ch['handle']}", file=sys.stderr)
+        return []
+    c = info["items"][0]
+    uploads = c["contentDetails"]["relatedPlaylists"]["uploads"]
+    name = ch.get("name") or c["snippet"]["title"]
+    pl = yt_get("playlistItems", key, part="contentDetails", playlistId=uploads, maxResults=25)
+    ids = [i["contentDetails"]["videoId"] for i in (pl or {}).get("items", [])]
+    if not ids:
+        return []
+    vids = yt_get("videos", key, part="snippet,contentDetails,status", id=",".join(ids))
+    out = []
+    for v in (vids or {}).get("items", []):
+        sn, cd, stt = v["snippet"], v["contentDetails"], v.get("status", {})
+        dur = iso_duration(cd.get("duration"))
+        published = parse_date(sn.get("publishedAt", ""))
+        if not (0 < dur <= max_sec) or not stt.get("embeddable", False):
+            continue
+        if sn.get("liveBroadcastContent", "none") != "none" or not published or now - published > timedelta(hours=max_age_h):
+            continue
+        rr = cd.get("regionRestriction", {})
+        if "AT" in rr.get("blocked", []) or ("allowed" in rr and "AT" not in rr["allowed"]):
+            continue
+        title = html.unescape(sn.get("title", "")).strip()
+        desc = teaser(sn.get("description", ""), 200)
+        thumbs = sn.get("thumbnails", {})
+        thumb = next((thumbs[k]["url"] for k in ("maxres", "standard", "high", "medium", "default") if k in thumbs), None)
+        cat = classify({"id": ch["id"], "category": ch.get("category", "auto")}, title, desc, "", "")
+        if cat == "unklar":
+            cat = ch.get("fallback", "welt")
+        age_h = (now - published).total_seconds() / 3600
+        out.append({
+            "id": "yt-" + v["id"],
+            "type": "video",
+            "platform": "youtube",
+            "videoId": v["id"],
+            "title": title,
+            "summary": "",
+            "source": name,
+            "sourceUrl": f"https://www.youtube.com/shorts/{v['id']}",
+            "imageUrl": thumb,
+            "category": cat,
+            "importance": max(0, min(100, int(ch.get("weight", 20) + (20 if age_h < 6 else 10 if age_h < 24 else 0)))),
+            "coveredBy": [name],
+            "lang": ch.get("lang", "de"),
+            "durationSec": dur,
+            "publishedAt": published.isoformat().replace("+00:00", "Z"),
+        })
+    print(f"  YouTube {ch['handle']}: {len(out)} Shorts")
+    return out
+
+
+def youtube_items(cfg: dict, now: datetime) -> list[dict]:
+    key = os.environ.get("YOUTUBE_API_KEY", "").strip()
+    channels = cfg.get("youtube", [])
+    if not key or not channels:
+        print("YouTube: übersprungen (kein Key oder keine Kanäle)")
+        return []
+    st = cfg["settings"]
+    with cf.ThreadPoolExecutor(max_workers=6) as ex:
+        vids = [v for lst in ex.map(lambda ch: youtube_channel(
+            ch, key, now, st.get("videoMaxAgeHours", 48), st.get("videoMaxSeconds", 180)), channels) for v in lst]
+    # Pro Kanal höchstens 4, insgesamt die wichtigsten/neuesten
+    per, out = {}, []
+    for v in sorted(vids, key=lambda v: (v["importance"], v["publishedAt"]), reverse=True):
+        if per.get(v["source"], 0) < 4:
+            out.append(v)
+            per[v["source"]] = per.get(v["source"], 0) + 1
+    return out[: st.get("maxVideos", 20)]
+
+
 # ---------------------------------------------------------------- Hauptprogramm
 
 def main() -> None:
@@ -340,6 +446,9 @@ def main() -> None:
         "publishedAt": g["publishedAt"].isoformat().replace("+00:00", "Z"),
     } for g in picked]
 
+    videos = youtube_items(cfg, now)
+    items += videos
+
     OUT_DIR.mkdir(exist_ok=True)
     feed = {"version": 1, "generatedAt": now.isoformat().replace("+00:00", "Z"), "items": items}
     (OUT_DIR / "feed.json").write_text(json.dumps(feed, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -348,6 +457,7 @@ def main() -> None:
         f"<p>Checkd News-Feed · {len(items)} Meldungen · {feed['generatedAt']}</p><a href=feed.json>feed.json</a>",
         encoding="utf-8")
     counts = {c: sum(1 for i in items if i["category"] == c) for c in CATEGORIES}
+    print(f"Videos: {len(videos)}")
     print(f"{len(raw)} geladen, {len(fresh)} aktuell, {len(groups)} Themen -> {len(items)} im Feed {counts}")
 
 

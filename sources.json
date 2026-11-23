@@ -1,24 +1,191 @@
 {
-  "_info": "Quellen für den Checkd-News-Feed. Neue Quelle = neuen Eintrag ergänzen. category = feste Kategorie, 'auto' = aus RSS-Kategorie/Link/Stichwörtern erkennen. weight = Grund-Wichtigkeit der Quelle (0-40).",
+  "_info": "Quellen für den Checkd-News-Feed. Neue Quelle = neuen Eintrag ergänzen. category = feste Kategorie, 'auto' = aus RSS-Kategorie/Link/Stichwörtern erkennen. weight = Grund-Wichtigkeit der Quelle (0-40). youtube: Kanäle per @Handle; nur kurze, einbettbare Videos (Shorts) werden übernommen.",
   "rss": [
-    { "id": "orf",        "name": "ORF",           "url": "https://rss.orf.at/news.xml",                              "category": "auto",        "weight": 32, "lang": "de" },
-    { "id": "orf-sport",  "name": "ORF Sport",     "url": "https://rss.orf.at/sport.xml",                             "category": "sport",       "weight": 24, "lang": "de" },
-    { "id": "standard-i", "name": "Der Standard",  "url": "https://www.derstandard.at/rss/inland",                    "category": "oesterreich", "weight": 28, "lang": "de" },
-    { "id": "standard-w", "name": "Der Standard",  "url": "https://www.derstandard.at/rss/international",             "category": "welt",        "weight": 28, "lang": "de" },
-    { "id": "standard-e", "name": "Der Standard",  "url": "https://www.derstandard.at/rss/wirtschaft",                "category": "wirtschaft",  "weight": 26, "lang": "de" },
-    { "id": "standard-t", "name": "Der Standard",  "url": "https://www.derstandard.at/rss/web",                       "category": "tech",        "weight": 24, "lang": "de" },
-    { "id": "standard-s", "name": "Der Standard",  "url": "https://www.derstandard.at/rss/sport",                     "category": "sport",       "weight": 20, "lang": "de" },
-    { "id": "tagesschau", "name": "Tagesschau",    "url": "https://www.tagesschau.de/index~rss2.xml",                 "category": "auto",        "weight": 28, "lang": "de" },
-    { "id": "presse",     "name": "Die Presse",    "url": "https://www.diepresse.com/rss",                            "category": "auto",        "weight": 26, "lang": "de" },
-    { "id": "kurier",     "name": "Kurier",        "url": "https://kurier.at/xml/rss",                                "category": "auto",        "weight": 22, "lang": "de" },
-    { "id": "bbc-world",  "name": "BBC News",      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",              "category": "welt",        "weight": 22, "lang": "en" },
-    { "id": "bbc-biz",    "name": "BBC News",      "url": "https://feeds.bbci.co.uk/news/business/rss.xml",           "category": "wirtschaft",  "weight": 18, "lang": "en" },
-    { "id": "bbc-tech",   "name": "BBC News",      "url": "https://feeds.bbci.co.uk/news/technology/rss.xml",         "category": "tech",        "weight": 20, "lang": "en" }
+    {
+      "id": "orf",
+      "name": "ORF",
+      "url": "https://rss.orf.at/news.xml",
+      "category": "auto",
+      "weight": 32,
+      "lang": "de"
+    },
+    {
+      "id": "orf-sport",
+      "name": "ORF Sport",
+      "url": "https://rss.orf.at/sport.xml",
+      "category": "sport",
+      "weight": 24,
+      "lang": "de"
+    },
+    {
+      "id": "standard-i",
+      "name": "Der Standard",
+      "url": "https://www.derstandard.at/rss/inland",
+      "category": "oesterreich",
+      "weight": 28,
+      "lang": "de"
+    },
+    {
+      "id": "standard-w",
+      "name": "Der Standard",
+      "url": "https://www.derstandard.at/rss/international",
+      "category": "welt",
+      "weight": 28,
+      "lang": "de"
+    },
+    {
+      "id": "standard-e",
+      "name": "Der Standard",
+      "url": "https://www.derstandard.at/rss/wirtschaft",
+      "category": "wirtschaft",
+      "weight": 26,
+      "lang": "de"
+    },
+    {
+      "id": "standard-t",
+      "name": "Der Standard",
+      "url": "https://www.derstandard.at/rss/web",
+      "category": "tech",
+      "weight": 24,
+      "lang": "de"
+    },
+    {
+      "id": "standard-s",
+      "name": "Der Standard",
+      "url": "https://www.derstandard.at/rss/sport",
+      "category": "sport",
+      "weight": 20,
+      "lang": "de"
+    },
+    {
+      "id": "tagesschau",
+      "name": "Tagesschau",
+      "url": "https://www.tagesschau.de/index~rss2.xml",
+      "category": "auto",
+      "weight": 28,
+      "lang": "de"
+    },
+    {
+      "id": "presse",
+      "name": "Die Presse",
+      "url": "https://www.diepresse.com/rss",
+      "category": "auto",
+      "weight": 26,
+      "lang": "de"
+    },
+    {
+      "id": "kurier",
+      "name": "Kurier",
+      "url": "https://kurier.at/xml/rss",
+      "category": "auto",
+      "weight": 22,
+      "lang": "de"
+    },
+    {
+      "id": "bbc-world",
+      "name": "BBC News",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "category": "welt",
+      "weight": 22,
+      "lang": "en"
+    },
+    {
+      "id": "bbc-biz",
+      "name": "BBC News",
+      "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "category": "wirtschaft",
+      "weight": 18,
+      "lang": "en"
+    },
+    {
+      "id": "bbc-tech",
+      "name": "BBC News",
+      "url": "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      "category": "tech",
+      "weight": 20,
+      "lang": "en"
+    }
   ],
-  "youtube": [],
+  "youtube": [
+    {
+      "id": "yt-zib",
+      "handle": "@ZIB",
+      "name": "ZIB",
+      "category": "auto",
+      "fallback": "oesterreich",
+      "weight": 30,
+      "lang": "de"
+    },
+    {
+      "id": "yt-orf",
+      "handle": "@ORF",
+      "name": "ORF",
+      "category": "auto",
+      "fallback": "oesterreich",
+      "weight": 28,
+      "lang": "de"
+    },
+    {
+      "id": "yt-standard",
+      "handle": "@derstandardat",
+      "name": "Der Standard",
+      "category": "auto",
+      "fallback": "oesterreich",
+      "weight": 24,
+      "lang": "de"
+    },
+    {
+      "id": "yt-puls24",
+      "handle": "@PULS24",
+      "name": "PULS 24",
+      "category": "auto",
+      "fallback": "oesterreich",
+      "weight": 22,
+      "lang": "de"
+    },
+    {
+      "id": "yt-tagesschau",
+      "handle": "@tagesschau",
+      "name": "tagesschau",
+      "category": "auto",
+      "fallback": "welt",
+      "weight": 26,
+      "lang": "de"
+    },
+    {
+      "id": "yt-zdfheute",
+      "handle": "@ZDFheute",
+      "name": "ZDFheute",
+      "category": "auto",
+      "fallback": "welt",
+      "weight": 22,
+      "lang": "de"
+    },
+    {
+      "id": "yt-dw",
+      "handle": "@DWDeutsch",
+      "name": "DW Deutsch",
+      "category": "auto",
+      "fallback": "welt",
+      "weight": 20,
+      "lang": "de"
+    },
+    {
+      "id": "yt-bbc",
+      "handle": "@BBCNews",
+      "name": "BBC News",
+      "category": "auto",
+      "fallback": "welt",
+      "weight": 18,
+      "lang": "en"
+    }
+  ],
   "settings": {
     "maxAgeHours": 36,
     "perCategory": 15,
-    "maxItems": 60
+    "maxItems": 60,
+    "maxVideos": 20,
+    "videoMaxAgeHours": 48,
+    "videoMaxSeconds": 180
   }
 }
