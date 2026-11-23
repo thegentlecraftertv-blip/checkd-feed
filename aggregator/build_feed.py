@@ -351,7 +351,11 @@ def youtube_channel(ch: dict, key: str, now: datetime, max_age_h: int, max_sec: 
         rr = cd.get("regionRestriction", {})
         if "AT" in rr.get("blocked", []) or ("allowed" in rr and "AT" not in rr["allowed"]):
             continue
-        title = html.unescape(sn.get("title", "")).strip()
+        # Hashtags und übrig gebliebene Trennzeichen aus dem Titel entfernen
+        title = re.sub(r"#[\w\-]+", "", html.unescape(sn.get("title", "")))
+        title = re.sub(r"\s+", " ", title).strip(" |-–·")
+        if not title:
+            continue
         desc = teaser(sn.get("description", ""), 200)
         thumbs = sn.get("thumbnails", {})
         thumb = next((thumbs[k]["url"] for k in ("maxres", "standard", "high", "medium", "default") if k in thumbs), None)
