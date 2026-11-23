@@ -1,0 +1,48 @@
+# Baut stündlich den Checkd-News-Feed und veröffentlicht ihn auf GitHub Pages:
+#   https://<dein-github-name>.github.io/checkd-feed/feed.json
+name: News-Feed bauen
+
+on:
+  schedule:
+    - cron: "17 * * * *"      # jede Stunde zur Minute 17 (UTC)
+  workflow_dispatch: {}        # "Run workflow"-Knopf auf GitHub zum sofort Starten
+  push:
+    branches: [main]
+    paths: ["sources.json", "tiktok.json", "aggregator/**", ".github/workflows/feed.yml"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: feed
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Feed bauen
+        run: python aggregator/build_feed.py
+        # Später (Phase 4/7): API-Keys kommen aus GitHub Secrets, nie aus dem Code
+        # env:
+        #   YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
